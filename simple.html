@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Senator Name Cleaner</title>
+<style>
+  body {
+    font-family: "Inter", sans-serif;
+    background: #0f172a;
+    color: #f1f5f9;
+    margin: 0;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  h1 {
+    color: #38bdf8;
+    font-size: 1.8rem;
+  }
+  textarea, pre {
+    width: 90%;
+    max-width: 800px;
+    border-radius: 10px;
+    border: none;
+    padding: 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  textarea {
+    height: 250px;
+    background: #1e293b;
+    color: #f1f5f9;
+    resize: vertical;
+  }
+  button {
+    background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    color: white;
+    font-weight: 600;
+    transition: transform 0.15s ease;
+  }
+  button:hover {
+    transform: scale(1.05);
+  }
+  pre {
+    background: #1e293b;
+    white-space: pre-wrap;
+    color: #e2e8f0;
+    min-height: 100px;
+  }
+</style>
+</head>
+<body>
+  <h1>Senator Name Cleaner</h1>
+  <textarea id="input" placeholder="Paste messy senator list here..."></textarea>
+  <button onclick="cleanNames()">Clean Names</button>
+  <pre id="output" placeholder="Clean names will appear here..."></pre>
+
+<script>
+function cleanNames() {
+  const text = document.getElementById('input').value;
+  const lines = text.split('\n');
+  const output = [];
+
+  for (let line of lines) {
+    // Skip irrelevant lines
+    if (
+      !line.trim() ||
+      line.includes('* * *') ||
+      line.match(/CONGRESS/i) ||
+      line.match(/Served again/i)
+    ) continue;
+
+    // Remove leading date like "July 16", "November 26"
+    line = line.replace(/^[A-Za-z]+\s+\d{1,2}\s+/, '');
+
+    // Remove parentheses with party/state info and trailing dates
+    line = line
+      .replace(/\([^)]*\)/g, '')
+      .replace(
+        /\b(January|February|March|April|May|June|July|August|September|October|November|December)\b.*$/,
+        ''
+      );
+
+    // Trim whitespace and trailing punctuation
+    line = line.trim().replace(/[;,]+$/, '');
+
+    // Match pattern "Lastname, Firstname ..."
+    const match = line.match(/^([^,]+),\s*(.+)$/);
+    if (match) {
+      let last = match[1].trim();
+      let first = match[2].trim();
+
+      // Handle suffixes like ", Jr." -> "Jr."
+      first = first.replace(/,\s*(Jr\.|Sr\.|II|III|IV)\b/, ' $1');
+
+      // Preserve middle initials (with periods) — no change needed
+
+      // Compose final name
+      output.push(`${first} ${last}`.trim());
+    }
+  }
+
+  document.getElementById('output').textContent = output.join('\n');
+}
+</script>
+</body>
+</html>
