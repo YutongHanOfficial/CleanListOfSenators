@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Senator Name Cleaner & Sorter</title>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --muted:#9aa4b2;
+      --accent:#06b6d4;
+      --glass: rgba(255,255,255,0.03);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background: linear-gradient(180deg,#071025 0%, #061426 60%);
+      color:#e6eef6;
+      padding:28px;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .wrap{
+      max-width:980px;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns: 1fr 420px;
+      gap:20px;
+      align-items:start;
+    }
+
+    header{
+      grid-column: 1 / -1;
+      margin-bottom:8px;
+    }
+    h1{
+      margin:0 0 8px 0;
+      font-size:20px;
+      letter-spacing:-0.2px;
+    }
+    p.lead{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .panel{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+      border: 1px solid rgba(255,255,255,0.04);
+      padding:14px;
+      border-radius:12px;
+      box-shadow: 0 6px 24px rgba(2,6,23,0.6);
+    }
+
+    textarea{
+      width:100%;
+      resize:vertical;
+      border-radius:8px;
+      padding:12px;
+      border:1px solid rgba(255,255,255,0.04);
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+      color:inherit;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+      font-size:13px;
+    }
+
+    .controls{
+      display:flex;
+      gap:8px;
+      margin-top:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    button{
+      background:var(--accent);
+      color:#02242a;
+      border:none;
+      padding:8px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+      box-shadow: 0 6px 18px rgba(6,182,212,0.08);
+    }
+    button.ghost{
+      background:transparent;
+      color:var(--muted);
+      border:1px solid rgba(255,255,255,0.04);
+      box-shadow:none;
+    }
+
+    .side {
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .search {
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    input[type="search"], select {
+      width:100%;
+      padding:8px 10px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.04);
+      background:var(--glass);
+      color:inherit;
+      font-size:13px;
+    }
+
+    .results{
+      margin-top:8px;
+      max-height:320px;
+      overflow:auto;
+      padding:8px;
+      border-radius:8px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+      border:1px solid rgba(255,255,255,0.02);
+    }
+
+    .row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:8px;
+      border-radius:8px;
+      align-items:center;
+      transition: background .12s;
+    }
+    .row:hover{ background: rgba(255,255,255,0.016) }
+    .name{
+      font-weight:600;
+      font-size:14px;
+    }
+    .meta{
+      color:var(--muted);
+      font-size:12px;
+      min-width:70px;
+      text-align:right;
+    }
+
+    .small{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    footer{
+      grid-column:1/-1;
+      margin-top:12px;
+      color:var(--muted);
+      font-size:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+    }
+
+    .cleaned-box {
+      margin-top:12px;
+    }
+    .cleaned-box textarea {
+      height:160px;
+      background:var(--glass);
+    }
+
+    @media (max-width:920px){
+      .wrap{grid-template-columns:1fr; padding:12px}
+      .side{order:2}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Senator Name Cleaner & Sorter</h1>
+      <p class="lead">Paste the raw list (one senator per line). The tool extracts names like <code>Richard Bassett</code>, sorts, and shows clean text output.</p>
+    </header>
+
+    <div class="panel">
+      <label class="small">Raw input</label>
+      <textarea id="rawInput" spellcheck="false">
+Bassett, Richard (Anti-Admin/Pro-Admin-DE) March 3, 1793
+Butler, Pierce (Pro-Admin/Anti-Admin/DR-SC) October 25, 1796
+(Served again 1802)
+Carroll, Charles (Pro-Admin-MD) November 30, 1792
+Dalton, Tristram (Pro-Admin-MA) March 3, 1791
+Ellsworth, Oliver (Pro-Admin/F-CT) March 8, 1796
+Elmer, Jonathan (Pro-Admin-NJ) March 3, 1791
+Few, William (Anti-Admin-GA) March 3, 1793
+Grayson, William (Anti-Admin-VA) March 12, 1790
+Gunn, James (Anti-Admin/F-GA) March 3, 1801
+Henry, John (Pro-Admin/F-MD) July 10, 1797
+Izard, Ralph (Pro-Admin-SC) March 3, 1795
+Johnson, William S. (Pro-Admin-CT) March 4, 1791
+Langdon, John (Pro-Admin/Anti-Admin/R-NH) March 3, 1801
+Lee, Richard Henry (Anti-Admin-VA) October 8, 1792
+Maclay, William (Anti-Admin-PA) March 3, 1791
+Morris, Robert (Pro-Admin-PA) March 3, 1795
+Paterson, William (Pro-Admin-NJ) November 13, 1790
+Read, George (Pro-Admin-DE) September 18, 1793
+Schuyler, Philip John (Pro-Admin-NY) March 3, 1791
+(Served again 1797)
+Strong, Caleb (Pro-Admin/F-MA) June 1, 1796
+Wingate, Paine (Anti-Admin-NH) March 3, 1793
+      </textarea>
+
+      <div class="controls">
+        <button id="parseBtn">Parse & Clean</button>
+        <button id="copyBtn" class="ghost">Copy Cleaned</button>
+        <button id="csvBtn" class="ghost">Export CSV</button>
+        <button id="clearBtn" class="ghost">Clear</button>
+      </div>
+
+      <div class="cleaned-box">
+        <label class="small">Raw Cleaned Text</label>
+        <textarea id="cleanedText" readonly spellcheck="false" placeholder="Cleaned names will appear here..."></textarea>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="panel">
+        <label class="small">Search names</label>
+        <div class="search" style="margin-top:8px">
+          <input id="searchInput" type="search" placeholder="search first or last name" />
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <select id="sortField" title="Sort field">
+            <option value="last">Sort by last name</option>
+            <option value="first">Sort by first name</option>
+          </select>
+          <select id="sortDir" title="Sort direction">
+            <option value="asc">A → Z</option>
+            <option value="desc">Z → A</option>
+          </select>
+        </div>
+
+        <div class="results" id="results" aria-live="polite" style="margin-top:12px">
+          <div class="small">No results yet. Click <strong>Parse & Clean</strong> to begin.</div>
+        </div>
+      </div>
+    </aside>
+
+    <footer>
+      <div>Created for quick senator name cleanup & sorting.</div>
+      <div class="small">Paste → Parse → Search/Sort → Copy/Export</div>
+    </footer>
+  </div>
+
+  <script>
+    const rawInput = document.getElementById('rawInput');
+    const parseBtn = document.getElementById('parseBtn');
+    const resultsEl = document.getElementById('results');
+    const searchInput = document.getElementById('searchInput');
+    const sortField = document.getElementById('sortField');
+    const sortDir = document.getElementById('sortDir');
+    const copyBtn = document.getElementById('copyBtn');
+    const csvBtn = document.getElementById('csvBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const cleanedText = document.getElementById('cleanedText');
+
+    let cleanedList = [];
+
+    function parseLine(line){
+      line = line.trim();
+      if(!line) return null;
+      if(line.startsWith('(') && line.endsWith(')')) return null;
+
+      const commaIndex = line.indexOf(',');
+      if(commaIndex === -1) return null;
+
+      const last = line.slice(0, commaIndex).trim();
+      let after = line.slice(commaIndex + 1).trim();
+
+      const parenPos = after.indexOf('(');
+      if(parenPos !== -1) after = after.slice(0, parenPos).trim();
+      const digitMatch = after.search(/\d/);
+      if(digitMatch >= 0) after = after.slice(0, digitMatch).trim();
+      after = after.replace(/,+$/,'').trim();
+
+      if(!after) return null;
+      const namePart = after.replace(/\s+/g,' ').trim();
+      const display = `${namePart} ${last}`.trim();
+      const first = namePart.split(' ')[0] || '';
+      return { display, first, last };
+    }
+
+    function parseAll(){
+      const lines = rawInput.value.split(/\r?\n/);
+      const out = [];
+      for(const raw of lines){
+        const entry = parseLine(raw);
+        if(entry) out.push(entry);
+      }
+      cleanedList = out;
+      applyFiltersAndRender();
+    }
+
+    function applyFiltersAndRender(){
+      const q = searchInput.value.trim().toLowerCase();
+      const field = sortField.value;
+      const dir = sortDir.value;
+
+      let filtered = cleanedList.slice();
+      if(q){
+        filtered = filtered.filter(e =>
+          e.display.toLowerCase().includes(q) ||
+          e.first.toLowerCase().includes(q) ||
+          e.last.toLowerCase().includes(q)
+        );
+      }
+
+      filtered.sort((a,b)=>{
+        const A=(field==='last'?a.last:a.first).toLowerCase();
+        const B=(field==='last'?b.last:b.first).toLowerCase();
+        if(A<B) return dir==='asc'?-1:1;
+        if(A>B) return dir==='asc'?1:-1;
+        return 0;
+      });
+
+      renderList(filtered);
+      renderCleanedText(filtered);
+    }
+
+    function renderList(list){
+      resultsEl.innerHTML='';
+      if(list.length===0){
+        resultsEl.innerHTML='<div class="small">No names found.</div>';
+        return;
+      }
+      list.forEach((e,i)=>{
+        const row=document.createElement('div');
+        row.className='row';
+        const left=document.createElement('div');
+        left.innerHTML=`<div class="name">${e.display}</div>`;
+        const right=document.createElement('div');
+        right.className='meta';
+        right.textContent=`#${i+1}`;
+        row.appendChild(left);
+        row.appendChild(right);
+        resultsEl.appendChild(row);
+      });
+    }
+
+    function renderCleanedText(list){
+      const text = list.map(e=>e.display).join('\n');
+      cleanedText.value = text;
+    }
+
+    async function copyCleaned(){
+      if(!cleanedText.value.trim()){
+        alert('Nothing to copy. Parse first.');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(cleanedText.value);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(()=>copyBtn.textContent='Copy Cleaned',1200);
+      } catch {
+        alert('Copy failed.');
+      }
+    }
+
+    function exportCSV(){
+      if(cleanedList.length===0){
+        alert('No cleaned list to export.');
+        return;
+      }
+      const rows=[['first','last','full']];
+      cleanedList.forEach(r=>rows.push([r.first,r.last,r.display]));
+      const csv=rows.map(r=>r.map(c=>`"${c.replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download='senators_cleaned.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearAll(){
+      if(confirm('Clear input and results?')){
+        rawInput.value='';
+        cleanedList=[];
+        cleanedText.value='';
+        resultsEl.innerHTML='<div class="small">No results yet. Click <strong>Parse & Clean</strong> to begin.</div>';
+      }
+    }
+
+    parseBtn.addEventListener('click',parseAll);
+    searchInput.addEventListener('input',applyFiltersAndRender);
+    sortField.addEventListener('change',applyFiltersAndRender);
+    sortDir.addEventListener('change',applyFiltersAndRender);
+    copyBtn.addEventListener('click',copyCleaned);
+    csvBtn.addEventListener('click',exportCSV);
+    clearBtn.addEventListener('click',clearAll);
+
+    parseAll();
+  </script>
+</body>
+</html>
